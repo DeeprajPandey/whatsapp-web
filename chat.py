@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
-### Created by Chirag Khatri
-### github.com/zvovov
+# Created by Chirag Khatri
+# github.com/zvovov
 
 import sched
 import sys
@@ -48,30 +48,34 @@ try:
             # authorize this application every time.
             # NOTE: This gets created in your home directory and can get quite large over time.
             # To fix this, simply delete this directory and re-authorize your WhatsApp Web session.
-            chrome_data_dir_directory = "{0}/.chrome/data_dir/whatsapp_web_cli".format(os.environ['HOME'])
+            chrome_data_dir_directory = "{0}/.chrome/data_dir/whatsapp_web_cli".format(
+                os.environ['HOME'])
             if not os.path.exists(chrome_data_dir_directory):
                 os.makedirs(chrome_data_dir_directory)
 
             driver_options = webdriver.ChromeOptions()
-            driver_options.add_argument("user-data-dir={0}".format(chrome_data_dir_directory))
+            driver_options.add_argument(
+                "user-data-dir={0}".format(chrome_data_dir_directory))
 
             # add proxy capability
             # PROXY = "scheme://user:pass@host:port"
             # driver_options.add_argument('--proxy-server=%s' % PROXY)
-            
+
             driver_options.add_argument('--disable-gpu')
             driver_options.add_argument('--disable-extensions')
             # driver_options.add_argument('--headless')
-                               
+
             # setting up Chrome with selenium
-            driver = webdriver.Chrome(config['chromedriver_path'], options=driver_options)
+            driver = webdriver.Chrome(
+                config['chromedriver_path'], options=driver_options)
 
             # open WW in browser
             driver.get(config['ww_url'])
 
             # prompt user to connect device to WW
             while True:
-                isConnected = input(decorateMsg("\n\tPhone connected? y/n: ", bcolors.HEADER))
+                isConnected = input(decorateMsg(
+                    "\n\tPhone connected? y/n: ", bcolors.HEADER))
                 if isConnected.lower() == 'y':
                     break
 
@@ -80,36 +84,40 @@ try:
             chooseReceiver(driver)
 
             # getting true name of contact/group
-            last_thread_name = driver.find_element(By.XPATH, '//*[@id="main"]/header//span[contains(@dir, "auto")]').text
+            last_thread_name = driver.find_element(
+                By.XPATH, '//*[@id="main"]/header//span[contains(@dir, "auto")]').text
 
             # start background thread
-            incoming_thread = threading.Thread(target=startGetMsg, args=(driver,))
+            incoming_thread = threading.Thread(
+                target=startGetMsg, args=(driver,))
             incoming_thread.start()
 
             while True:
                 msg = input().strip()
                 if len(msg) > 7 and 'sendto ' in msg[:7]:
-                        chooseReceiver(driver, receiver=msg[7:])
+                    chooseReceiver(driver, receiver=msg[7:])
                 elif msg == 'stopsending':
-                    print(decorateMsg("\tYou will only receive msgs now.\n\tPress Ctrl+C to exit.", bcolors.WARNING))
+                    print(decorateMsg(
+                        "\tYou will only receive msgs now.\n\tPress Ctrl+C to exit.", bcolors.WARNING))
                     # TODO: stop the incoming_scheduler event
                     break
                 else:
                     sendMsg(driver, msg)
 
         else:
-            sys.exit(decorateMsg("\nError: Missing name of contact/group\npython chat.py <name>", bcolors.FAIL))
+            sys.exit(decorateMsg(
+                "\nError: Missing name of contact/group\npython chat.py <name>", bcolors.FAIL))
 
         # open all contacts page
         # driver.find_element(By.TAG_NAME, "button").click()
-
 
     def sendMsg(driver, msg):
         """
         Type 'msg' in 'driver' and press RETURN
         """
         # select correct input box to type msg
-        input_box = driver.find_element(By.XPATH, '//*[@id="main"]//footer//div[contains(@contenteditable, "true")]')
+        input_box = driver.find_element(
+            By.XPATH, '//*[@id="main"]//footer//div[contains(@contenteditable, "true")]')
         # input_box.clear()
         input_box.click()
 
@@ -118,14 +126,13 @@ try:
         action.send_keys(Keys.RETURN)
         action.perform()
 
-
     def startGetMsg(driver):
         """
         Start schdeuler that gets incoming msgs every get_msg_interval seconds
         """
-        incoming_scheduler.enter(config['get_msg_interval'], 1, getMsg, (driver, incoming_scheduler))
+        incoming_scheduler.enter(
+            config['get_msg_interval'], 1, getMsg, (driver, incoming_scheduler))
         incoming_scheduler.run()
-
 
     def getMsg(driver, scheduler):
         """
@@ -138,7 +145,8 @@ try:
 
         try:
             # get all msgs
-            all_msgs = driver.find_elements(By.XPATH, '//*[@id="main"]//div[contains(@class, "message")]')
+            all_msgs = driver.find_elements(
+                By.XPATH, '//*[@id="main"]//div[contains(@class, "message")]')
 
             # check if there is atleast one message in the chat
             if len(all_msgs) >= 1:
@@ -163,7 +171,8 @@ try:
                     # loop from last msg to first
                     for i, curr_msg in reversed(list(enumerate(all_msgs))):
                         curr_msg_outgoing = outgoingMsgCheck(curr_msg)
-                        curr_msg_sender, curr_msg_text = getMsgMetaInfo(curr_msg)
+                        curr_msg_sender, curr_msg_text = getMsgMetaInfo(
+                            curr_msg)
 
                         # if curr_msg is outgoing OR if last_printed_msg is found
                         if curr_msg_outgoing or last_printed_msg == curr_msg_sender + curr_msg_text:
@@ -177,8 +186,8 @@ try:
                         print(decorateMsg(msg_sender + msg_text, bcolors.OKGREEN))
 
         # add the task to the scheduler again
-        incoming_scheduler.enter(config['get_msg_interval'], 1, getMsg, (driver, scheduler,))
-
+        incoming_scheduler.enter(
+            config['get_msg_interval'], 1, getMsg, (driver, scheduler,))
 
     def outgoingMsgCheck(webdriver_element):
         """
@@ -190,7 +199,6 @@ try:
                 return True
         return False
 
-
     def getMsgMetaInfo(webdriver_element):
         """
         Returns webdriver_element's sender and message text.
@@ -199,9 +207,11 @@ try:
         """
         # check for non-text message
         try:
-            msg = webdriver_element.find_element(By.XPATH, './/div[contains(@class, "copyable-text")]')
+            msg = webdriver_element.find_element(
+                By.XPATH, './/div[contains(@class, "copyable-text")]')
             msg_sender = msg.get_attribute('data-pre-plain-text')
-            msg_text = msg.find_elements(By.XPATH, './/span[contains(@class, "selectable-text")]')[-1].text
+            msg_text = msg.find_elements(
+                By.XPATH, './/span[contains(@class, "selectable-text")]')[-1].text
         except IndexError:
             msg_text = ""
         except Exception:
@@ -209,7 +219,6 @@ try:
             msg_text = ""
 
         return msg_sender, msg_text
-
 
     def decorateMsg(msg, color=None):
         """
@@ -224,20 +233,21 @@ try:
 
         return msg_string
 
-
     def printThreadName(driver):
         global last_thread_name
-        curr_thread_name = driver.find_element(By.XPATH, '//*[@id="main"]/header//span[contains(@dir, "auto")]').text
+        curr_thread_name = driver.find_element(
+            By.XPATH, '//*[@id="main"]/header//span[contains(@dir, "auto")]').text
         if curr_thread_name != last_thread_name:
             last_thread_name = curr_thread_name
-            print(decorateMsg("\n\tSending msgs to:", bcolors.OKBLUE), curr_thread_name)
+            print(decorateMsg("\n\tSending msgs to:",
+                              bcolors.OKBLUE), curr_thread_name)
         return curr_thread_name
-
 
     def chooseReceiver(driver, receiver=None):
         # search name of friend/group
         friend_name = receiver if receiver else ' '.join(sys.argv[1:])
-        input_box = driver.find_element(By.XPATH, '//*[@id="side"]//div[contains(@class,"copyable-text selectable-text")]')
+        input_box = driver.find_element(
+            By.XPATH, '//*[@id="side"]//div[contains(@class,"copyable-text selectable-text")]')
         input_box.clear()
         input_box.click()
         input_box.send_keys(friend_name)
