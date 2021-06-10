@@ -187,9 +187,15 @@ try:
                             break
                     # Print all msgs from last printed msg till newest msg
                     for i in range(print_from + 1, len(all_msgs)):
-                        msg_sender, msg_text = getMsgMetaInfo(all_msgs[i])
+                        msg_sender, msg_text, msg_quoted = getMsgMetaInfo(
+                            all_msgs[i], True)
                         last_printed_msg = msg_sender + msg_text
-                        print(decorateMsg(msg_sender + msg_text, bcolors.OKGREEN))
+                        if len(msg_quoted):
+                            print(decorateMsg(
+                                f"||{msg_quoted}||\n" + msg_sender + msg_text, bcolors.OKGREEN))
+                        else:
+                            print(decorateMsg(msg_sender +
+                                              msg_text, bcolors.OKGREEN))
 
         # add the task to the scheduler again
         incoming_scheduler.enter(
@@ -205,7 +211,7 @@ try:
                 return True
         return False
 
-    def getMsgMetaInfo(webdriver_element):
+    def getMsgMetaInfo(webdriver_element, getQuote=None):
         """
         Returns webdriver_element's sender and message text.
         Message Text is a blank string, if it is a non-text message
@@ -216,15 +222,28 @@ try:
             msg = webdriver_element.find_element(
                 By.XPATH, './/div[contains(@class, "copyable-text")]')
             msg_sender = msg.get_attribute('data-pre-plain-text')
+
+            msg_replied_to = ""
+            if getQuote:
+                quoted_text = msg.find_elements(
+                    By.XPATH, './/span[contains(@class, "quoted-mention")]')
+                # if there is some quoted text
+                if len(quoted_text):
+                    msg_replied_to = quoted_text[-1].text
+                # else ignore; otherwise we get IndexError and it resets msg_text
             msg_text = msg.find_elements(
                 By.XPATH, './/span[contains(@class, "selectable-text")]')[-1].text
         except IndexError:
+            print("IE")
             msg_text = ""
         except Exception:
             msg_sender = ""
             msg_text = ""
 
-        return msg_sender, msg_text
+        if getQuote:
+            return msg_sender, msg_text, msg_replied_to
+        else:
+            return msg_sender, msg_text
 
     def decorateMsg(msg, color=None):
         """
