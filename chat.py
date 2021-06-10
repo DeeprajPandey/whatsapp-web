@@ -58,6 +58,10 @@ try:
             # add proxy capability
             # PROXY = "scheme://user:pass@host:port"
             # driver_options.add_argument('--proxy-server=%s' % PROXY)
+            
+            driver_options.add_argument('--disable-gpu')
+            driver_options.add_argument('--disable-extensions')
+            # driver_options.add_argument('--headless')
                                
             # setting up Chrome with selenium
             driver = webdriver.Chrome(config['chromedriver_path'], options=driver_options)
