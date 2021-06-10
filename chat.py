@@ -19,6 +19,7 @@ from selenium.common.exceptions import WebDriverException as WebDriverException
 load_dotenv()
 
 config = {
+    'binpath': f"{os.getenv('CHROMIUMPATH')}",
     'chromedriver_path': f"{os.getenv('CDRIVERPATH')}/chromedriver".format(os.environ['HOME']),
     'get_msg_interval': 5,  # Time (seconds). Recommended value: 5
     'colors': True,  # True/False. True prints colorful msgs in console
@@ -57,6 +58,8 @@ try:
                 os.makedirs(chrome_data_dir_directory)
 
             driver_options = webdriver.ChromeOptions()
+            driver_options.use_chromium = True
+            driver_options.binary_location = config['binpath']
             driver_options.add_argument(
                 "user-data-dir={0}".format(chrome_data_dir_directory))
 
