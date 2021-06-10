@@ -230,11 +230,14 @@ try:
                 # if there is some quoted text
                 if len(quoted_text):
                     msg_replied_to = quoted_text[-1].text
+                    person = quoted_text[-1].find_elements(
+                        By.XPATH, './/..//../div//span[contains(@class, "_3-8er")]')
+                    # the second last span element (one before message) has the quote sender
+                    msg_replied_to = f"{person[-2].text}:: {msg_replied_to}"
                 # else ignore; otherwise we get IndexError and it resets msg_text
             msg_text = msg.find_elements(
                 By.XPATH, './/span[contains(@class, "selectable-text")]')[-1].text
         except IndexError:
-            print("IE")
             msg_text = ""
         except Exception:
             msg_sender = ""
