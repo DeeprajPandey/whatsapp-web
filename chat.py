@@ -9,14 +9,17 @@ import threading
 import time
 import os
 
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import WebDriverException as WebDriverException
 
+load_dotenv()
+
 config = {
-    'chromedriver_path': "{0}/bin/chromedriver".format(os.environ['HOME']),
+    'chromedriver_path': f"{os.getenv('CDRIVERPATH')}/chromedriver".format(os.environ['HOME']),
     'get_msg_interval': 5,  # Time (seconds). Recommended value: 5
     'colors': True,  # True/False. True prints colorful msgs in console
     'ww_url': "https://web.whatsapp.com/"
